@@ -36,7 +36,7 @@ app.get ('/users/:id', (request, response) =>{
 // Body Params \/
 
 const users = []
-
+ 
 const checkUserId = (request, response, next) => {
 
     const { id } = request.params
@@ -64,18 +64,27 @@ app.get('/users', (request, response) => {
 
 app.post('/users', (request, response) => {
 
+    try{ // No try, é introduzido o bloco de código que deseja ter a verificação executada.
+
     const { name, age } = request.body
+        if (age < 18) throw new Error("Only allowed users over 18.") // throw define um erro, criado pelo dev. Aqui um erro é criado com IF, se o usuário tiver menos de 18 anos, é impossibilitado de continuar a execução, e é enviado para o catch.
+
     const user = { id: uuid.v4(), name, age }
 
     users.push(user)
 
 
     return response.status(201).json(user)
-
+    } 
+    catch(err){  // No catch, o erro é lidado, e se preciso, é informado ao cliente.
+        return response.status(400).json({error: err.message})
+    } finally { // função opcional, aqui , independente do erro, terá um bloco de código que será executado no final de tudo.
+        console.log("Verificação concluída.")
+    }
 })
 
 app.put('/users/:id', checkUserId, (request, response) => {
-
+    try {
     const id = request.userId
   
     const { name, age } = request.body
@@ -83,10 +92,15 @@ app.put('/users/:id', checkUserId, (request, response) => {
 
     const updatedUser = { id, name, age }
 
+    if(age < 18) throw Error("Cannot Change, only allowed users over 18.")
+
 
     users[index] = updatedUser
     return response.json(updatedUser)
+    } catch(err) {
+        return response.status(400).json({error: err.message})
 
+    }
 })
 
 app.delete('/users/:id', checkUserId, (request, response) => {
